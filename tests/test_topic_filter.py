@@ -1,6 +1,8 @@
 import unittest
+import json
 
 from scripts.update_news import (
+    build_public_rss_status,
     build_latest_payloads,
     dedupe_items_by_title_url,
     is_ai_related_record,
@@ -188,6 +190,27 @@ class TopicFilterTests(unittest.TestCase):
         self.assertEqual(len(items), 1)
         self.assertEqual(items[0].source, "AI HubToday Daily")
         self.assertEqual(items[0].url, "https://hex2077.dev/docs/2026-05/2026-05-01/")
+
+    def test_public_rss_status_hides_private_urls_and_errors(self):
+        secret_url = "https://reader.example.com/rss?token=private-token"
+        payload = build_public_rss_status(
+            [
+                {
+                    "feed_url": secret_url,
+                    "effective_feed_url": secret_url,
+                    "ok": False,
+                    "item_count": 0,
+                    "error": f"Could not fetch {secret_url}",
+                    "skipped": False,
+                    "replaced": False,
+                }
+            ],
+            enabled=True,
+        )
+        rendered = json.dumps(payload, ensure_ascii=False)
+        self.assertNotIn(secret_url, rendered)
+        self.assertNotIn("private-token", rendered)
+        self.assertEqual(payload["failed_feeds"], ["私有订阅 #1"])
 
     def test_parse_follow_builders_items(self):
         feeds = {
