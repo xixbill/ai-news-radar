@@ -8,7 +8,9 @@ from scripts.update_news import (
     is_hubtoday_placeholder_title,
     maybe_fix_mojibake,
     normalize_source_for_display,
+    parse_ai_breakfast_home_items,
     parse_ai_breakfast_items,
+    parse_ai_hubtoday_rss_items,
     parse_feed_entries_via_xml,
     parse_anthropic_news_items,
     parse_follow_builders_items,
@@ -162,6 +164,30 @@ class TopicFilterTests(unittest.TestCase):
         self.assertEqual(items[0].source, "AI Breakfast")
         self.assertEqual(items[0].title, "Anthropic update lands")
         self.assertEqual(items[0].url, "https://aibreakfast.beehiiv.com/p/anthropic-update-lands")
+
+    def test_parse_ai_breakfast_home_items(self):
+        html = """
+        <a href="/p/anthropic-update-lands">
+          May 1, 2026 • 4 min read Anthropic update lands AI Breakfast
+        </a>
+        <a href="/about">About</a>
+        """
+        items = parse_ai_breakfast_home_items(html, now=None)
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].title, "Anthropic update lands")
+        self.assertEqual(items[0].url, "https://aibreakfast.beehiiv.com/p/anthropic-update-lands")
+
+    def test_parse_ai_hubtoday_rss_items(self):
+        xml = b"""<?xml version='1.0' encoding='UTF-8'?>
+<rss><channel><item>
+<title>2026-05-01 AI Daily</title>
+<link>https://hex2077.dev/docs/2026-05/2026-05-01/</link>
+<pubDate>Fri, 01 May 2026 08:00:00 GMT</pubDate>
+</item></channel></rss>"""
+        items = parse_ai_hubtoday_rss_items(xml, now=None)
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].source, "AI HubToday Daily")
+        self.assertEqual(items[0].url, "https://hex2077.dev/docs/2026-05/2026-05-01/")
 
     def test_parse_follow_builders_items(self):
         feeds = {
