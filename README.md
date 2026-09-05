@@ -106,7 +106,7 @@ python -m http.server 8080
 - OpenAI News RSS 不覆盖所有开发者侧小更新；因此默认层额外抓取 OpenAI Codex Changelog，并过滤接入 OpenAI Skills 仓库里和 Codex/宠物相关的更新。
 - X/Twitter 没有官方 RSS。`feeds/social-x.example.opml` 提供 Karpathy 的 RSSHub 候选示例，适合按需复制进自己的 OPML；公共默认层不强依赖它，避免第三方 X 桥不稳定时拖垮站点。
 - Follow Builders 使用中心化 GitHub Actions + 官方 X API 抓取公开 X 内容，本项目只读取它公开发布的 JSON feed；这比公共 RSSHub 稳定，但依赖第三方中心 feed。
-- AI Breakfast 的 Beehiiv 原始 `/feed` 在命令行和 GitHub Actions 场景可能被 Cloudflare 拦截；默认层通过 Jina Reader 读取公开归档页，只取公开标题和链接。
+- AI Breakfast 优先读取其公开首页、Jina Reader 仅作后备，避免单一文本代理失效时丢失日报源。
 
 ### 6. 给 Codex / Claude Code 使用
 
@@ -268,7 +268,7 @@ Source reliability notes:
 - OpenAI News RSS does not cover every developer-side minor update, so the default layer also reads the OpenAI Codex Changelog and filtered OpenAI Skills updates related to Codex/pets.
 - X/Twitter has no official RSS. `feeds/social-x.example.opml` includes a Karpathy RSSHub candidate for personal OPML use, but the public default layer does not depend on it.
 - Follow Builders uses centralized GitHub Actions plus the official X API to fetch public X content. This project reads its public JSON feeds, which is more stable than public RSSHub but depends on a third-party central feed.
-- AI Breakfast's Beehiiv `/feed` can be blocked by Cloudflare from CLI or GitHub Actions, so the default layer reads the public archive through Jina Reader and extracts public titles and links.
+- AI Breakfast is read from its public homepage first, with Jina Reader retained as a fallback so a single text proxy outage does not remove the newsletter source.
 
 For agent handoff, use:
 
