@@ -2395,6 +2395,52 @@ def sanitize_public_payload(payload: dict[str, Any]) -> dict[str, Any]:
     return sanitize_public_value(payload)
 
 
+def build_public_rss_status(
+    rss_feed_statuses: list[dict[str, Any]],
+    enabled: bool,
+) -> dict[str, Any]:
+    """Expose RSS health without publishing private subscription addresses."""
+    public_feeds: list[dict[str, Any]] = []
+    for index, status in enumerate(rss_feed_statuses, start=1):
+        public_feeds.append(
+            {
+                "label": f"私有订阅 #{index}",
+                "ok": bool(status.get("ok")),
+                "item_count": int(status.get("item_count") or 0),
+                "skipped": bool(status.get("skipped")),
+                "replaced": bool(status.get("replaced")),
+                # Only project-defined skip reasons are safe to expose. Raw errors
+                # often echo a tokenized URL and must remain private.
+                "reason": status.get("skip_reason") if status.get("skipped") else None,
+            }
+        )
+
+    return {
+        "enabled": enabled,
+        "path": "configured" if enabled else None,
+        "feed_total": len(public_feeds),
+        "effective_feed_total": sum(1 for feed in public_feeds if not feed["skipped"]),
+        "ok_feeds": sum(1 for feed in public_feeds if feed["ok"] and not feed["skipped"]),
+        "failed_feeds": [feed["label"] for feed in public_feeds if not feed["ok"]],
+        "zero_item_feeds": [
+            feed["label"]
+            for feed in public_feeds
+            if feed["ok"] and not feed["skipped"] and feed["item_count"] == 0
+        ],
+        "skipped_feeds": [
+            {"feed_url": feed["label"], "reason": feed["reason"]}
+            for feed in public_feeds
+            if feed["skipped"]
+        ],
+        "replaced_feeds": [
+            {"from": feed["label"], "to": "官方替代订阅源"}
+            for feed in public_feeds
+            if feed["replaced"]
+        ],
+        "feeds": public_feeds,
+    }
+
+
 def has_mojibake_noise(text: str) -> bool:
     if not text:
         return False
@@ -2819,30 +2865,7 @@ def main() -> int:
         "fetched_raw_items": len(raw_items),
         "items_before_topic_filter": len(latest_items_all),
         "items_in_24h": len(latest_items_ai_dedup),
-        "rss_opml": {
-            "enabled": bool(args.rss_opml),
-            "path": "configured" if args.rss_opml else None,
-            "feed_total": len(rss_feed_statuses),
-            "effective_feed_total": sum(1 for s in rss_feed_statuses if not s.get("skipped")),
-            "ok_feeds": sum(1 for s in rss_feed_statuses if s["ok"] and not s.get("skipped")),
-            "failed_feeds": [s.get("effective_feed_url") or s["feed_url"] for s in rss_feed_statuses if not s["ok"]],
-            "zero_item_feeds": [
-                s.get("effective_feed_url") or s["feed_url"]
-                for s in rss_feed_statuses
-                if s["ok"] and not s.get("skipped") and int(s.get("item_count") or 0) == 0
-            ],
-            "skipped_feeds": [
-                {"feed_url": s["feed_url"], "reason": s.get("skip_reason")}
-                for s in rss_feed_statuses
-                if s.get("skipped")
-            ],
-            "replaced_feeds": [
-                {"from": s["feed_url"], "to": s.get("effective_feed_url")}
-                for s in rss_feed_statuses
-                if s.get("replaced") and s.get("effective_feed_url")
-            ],
-            "feeds": rss_feed_statuses,
-        },
+        "rss_opml": build_public_rss_status(rss_feed_statuses, bool(args.rss_opml)),
     }
 
     try:
