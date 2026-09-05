@@ -83,8 +83,9 @@ baseline, then let the aggregator layer add breadth.
   uses centralized GitHub Actions plus official X API credentials. This project
   consumes only its public generated JSON files, so public visitors do not need
   X API credentials.
-- **AI Breakfast**: reads the public Beehiiv archive through Jina Reader because
-  the original Beehiiv feed can be blocked from GitHub Actions.
+- **AI Breakfast**: reads the public Beehiiv homepage first and retains Jina
+  Reader as a fallback because the original feed and third-party text proxies
+  can both be blocked from GitHub Actions.
 
 ## Disabled Default Sources
 
