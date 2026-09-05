@@ -108,7 +108,10 @@ OFFICIAL_AI_FEEDS: tuple[dict[str, str], ...] = (
     },
 )
 OFFICIAL_AI_MAX_AGE_DAYS = 45
+AIBREAKFAST_HOME_URL = "https://aibreakfast.beehiiv.com/"
 AIBREAKFAST_JINA_URL = "https://r.jina.ai/https://aibreakfast.beehiiv.com/"
+AIHUBTODAY_HOME_URL = "https://ai.hubtoday.app/"
+AIHUBTODAY_RSS_URL = "https://justlovemaki.github.io/CloudFlare-AI-Insight-Daily/rss.xml"
 FOLLOW_BUILDERS_FEED_BASE = "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main"
 
 
@@ -1302,21 +1305,82 @@ def parse_ai_breakfast_items(markdown_text: str, now: datetime) -> list[RawItem]
     return out
 
 
-def fetch_ai_breakfast(session: requests.Session, now: datetime) -> list[RawItem]:
-    resp = session.get(
-        AIBREAKFAST_JINA_URL,
-        timeout=25,
-        headers={
-            "User-Agent": BROWSER_UA,
-            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-            "Accept": "text/plain, */*",
-        },
+def parse_ai_breakfast_home_items(html_text: str, now: datetime | None) -> list[RawItem]:
+    """Parse the public Beehiiv homepage without relying on a text proxy."""
+    site_id = "aibreakfast"
+    site_name = "AI Breakfast"
+    soup = BeautifulSoup(html_text or "", "html.parser")
+    out: list[RawItem] = []
+    seen: set[str] = set()
+    pattern = re.compile(
+        r"(?P<date>[A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})\s+•\s+\d+\s+min read\s+(?P<title>.+?)\s*$",
+        re.S,
     )
-    resp.raise_for_status()
-    out = parse_ai_breakfast_items(resp.text, now)
-    if not out:
-        raise ValueError("No AI Breakfast items parsed")
+
+    for anchor in soup.select("a[href]"):
+        url = urljoin(AIBREAKFAST_HOME_URL, str(anchor.get("href") or "").strip())
+        parsed_url = urlparse(url)
+        if parsed_url.netloc.lower() != "aibreakfast.beehiiv.com" or not parsed_url.path.startswith("/p/"):
+            continue
+        if url in seen:
+            continue
+
+        text = re.sub(r"\s+", " ", anchor.get_text(" ", strip=True)).strip()
+        match = pattern.search(text)
+        if not match:
+            continue
+        published = parse_date_any(match.group("date"), now)
+        if not published:
+            continue
+        if now and published < now - timedelta(days=OFFICIAL_AI_MAX_AGE_DAYS):
+            continue
+
+        title = re.sub(r"\s+AI Breakfast\s*$", "", match.group("title")).strip()
+        if not title:
+            continue
+        seen.add(url)
+        out.append(
+            RawItem(
+                site_id=site_id,
+                site_name=site_name,
+                source="AI Breakfast",
+                title=maybe_fix_mojibake(title),
+                url=url,
+                published_at=published,
+                meta={"feed_home": AIBREAKFAST_HOME_URL},
+            )
+        )
+
     return out
+
+
+def fetch_ai_breakfast(session: requests.Session, now: datetime) -> list[RawItem]:
+    errors: list[str] = []
+    sources = (
+        (AIBREAKFAST_HOME_URL, parse_ai_breakfast_home_items, "text/html, */*"),
+        (AIBREAKFAST_JINA_URL, parse_ai_breakfast_items, "text/plain, */*"),
+    )
+
+    for url, parser, accept in sources:
+        try:
+            resp = session.get(
+                url,
+                timeout=25,
+                headers={
+                    "User-Agent": BROWSER_UA,
+                    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+                    "Accept": accept,
+                },
+            )
+            resp.raise_for_status()
+            out = parser(resp.text, now)
+            if out:
+                return out
+            errors.append(f"{url}: no items parsed")
+        except Exception as exc:
+            errors.append(f"{url}: {exc}")
+
+    raise ValueError("AI Breakfast unavailable: " + " | ".join(errors))
 
 
 def parse_follow_builders_items(feeds: dict[str, dict[str, Any]], now: datetime) -> list[RawItem]:
@@ -1465,11 +1529,72 @@ def normalize_aihubtoday_records(items: list[dict[str, Any]]) -> list[dict[str, 
     return keep
 
 
-def fetch_ai_hubtoday(session: requests.Session, now: datetime) -> list[RawItem]:
+def parse_ai_hubtoday_rss_items(feed_xml: bytes, now: datetime | None) -> list[RawItem]:
+    """Parse AI HubToday's public daily RSS mirror into regular radar items."""
+    entries: list[dict[str, Any]]
+    if feedparser is not None:
+        parsed = feedparser.parse(feed_xml)
+        entries = list(parsed.entries)
+    else:
+        entries = parse_feed_entries_via_xml(feed_xml)
+
+    out: list[RawItem] = []
+    seen: set[str] = set()
+    for entry in entries:
+        title = str(entry.get("title", "")).strip()
+        url = str(entry.get("link", "")).strip()
+        if not title or not url or url in seen:
+            continue
+        published = (
+            parse_date_any(entry.get("published"), now)
+            or parse_date_any(entry.get("updated"), now)
+            or parse_date_any(entry.get("pubDate"), now)
+        )
+        if not published:
+            continue
+        if now and published < now - timedelta(days=OFFICIAL_AI_MAX_AGE_DAYS):
+            continue
+        seen.add(url)
+        out.append(
+            RawItem(
+                site_id="aihubtoday",
+                site_name="AI HubToday",
+                source="AI HubToday Daily",
+                title=maybe_fix_mojibake(title),
+                url=url,
+                published_at=published,
+                meta={
+                    "feed_url": AIHUBTODAY_RSS_URL,
+                    "feed_home": AIHUBTODAY_HOME_URL,
+                },
+            )
+        )
+
+    return out
+
+
+def fetch_ai_hubtoday_rss(session: requests.Session, now: datetime) -> list[RawItem]:
+    resp = session.get(
+        AIHUBTODAY_RSS_URL,
+        timeout=25,
+        headers={
+            "User-Agent": BROWSER_UA,
+            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+            "Accept": "application/rss+xml, application/xml, text/xml, */*",
+        },
+    )
+    resp.raise_for_status()
+    out = parse_ai_hubtoday_rss_items(resp.content, now)
+    if not out:
+        raise ValueError("No AI HubToday RSS items parsed")
+    return out
+
+
+def fetch_ai_hubtoday_legacy(session: requests.Session, now: datetime) -> list[RawItem]:
     site_id = "aihubtoday"
     site_name = "AI HubToday"
 
-    r = session.get("https://ai.hubtoday.app/", timeout=30)
+    r = session.get(AIHUBTODAY_HOME_URL, timeout=30)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
 
@@ -1559,6 +1684,20 @@ def fetch_ai_hubtoday(session: requests.Session, now: datetime) -> list[RawItem]
             )
 
     return out
+
+
+def fetch_ai_hubtoday(session: requests.Session, now: datetime) -> list[RawItem]:
+    """Use the public RSS mirror first; retain the legacy page parser as backup."""
+    errors: list[str] = []
+    for fetcher in (fetch_ai_hubtoday_rss, fetch_ai_hubtoday_legacy):
+        try:
+            out = fetcher(session, now)
+            if out:
+                return out
+            errors.append(f"{fetcher.__name__}: no items parsed")
+        except Exception as exc:
+            errors.append(f"{fetcher.__name__}: {exc}")
+    raise ValueError("AI HubToday unavailable: " + " | ".join(errors))
 
 
 def fetch_aibase(session: requests.Session, now: datetime) -> list[RawItem]:
