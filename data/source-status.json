@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-09-08T02:08:24.481990Z",
+  "generated_at": "2026-09-08T07:20:11.510045Z",
   "sites": [
     {
       "site_id": "official_ai",
       "site_name": "Official AI Updates",
       "ok": true,
       "item_count": 194,
-      "duration_ms": 2666,
+      "duration_ms": 2257,
       "error": null
     },
     {
@@ -14,15 +14,15 @@
       "site_name": "AI Breakfast",
       "ok": true,
       "item_count": 9,
-      "duration_ms": 261,
+      "duration_ms": 71,
       "error": null
     },
     {
       "site_id": "followbuilders",
       "site_name": "Follow Builders",
       "ok": true,
-      "item_count": 6,
-      "duration_ms": 100,
+      "item_count": 24,
+      "duration_ms": 23,
       "error": null
     },
     {
@@ -30,7 +30,7 @@
       "site_name": "TechURLs",
       "ok": true,
       "item_count": 405,
-      "duration_ms": 294,
+      "duration_ms": 416,
       "error": null
     },
     {
@@ -38,15 +38,15 @@
       "site_name": "Buzzing",
       "ok": true,
       "item_count": 744,
-      "duration_ms": 392,
+      "duration_ms": 313,
       "error": null
     },
     {
       "site_id": "iris",
       "site_name": "Info Flow",
       "ok": true,
-      "item_count": 343,
-      "duration_ms": 17191,
+      "item_count": 402,
+      "duration_ms": 18134,
       "error": null
     },
     {
@@ -54,31 +54,31 @@
       "site_name": "BestBlogs",
       "ok": true,
       "item_count": 1,
-      "duration_ms": 1034,
+      "duration_ms": 655,
       "error": null
     },
     {
       "site_id": "tophub",
       "site_name": "TopHub",
       "ok": true,
-      "item_count": 3040,
-      "duration_ms": 1436,
+      "item_count": 3047,
+      "duration_ms": 1571,
       "error": null
     },
     {
       "site_id": "zeli",
       "site_name": "Zeli",
       "ok": true,
-      "item_count": 64,
-      "duration_ms": 1361,
+      "item_count": 62,
+      "duration_ms": 682,
       "error": null
     },
     {
       "site_id": "aihubtoday",
       "site_name": "AI HubToday",
       "ok": true,
-      "item_count": 1,
-      "duration_ms": 159,
+      "item_count": 2,
+      "duration_ms": 104,
       "error": null
     },
     {
@@ -86,7 +86,7 @@
       "site_name": "AIbase",
       "ok": true,
       "item_count": 20,
-      "duration_ms": 2524,
+      "duration_ms": 882,
       "error": null
     },
     {
@@ -94,16 +94,16 @@
       "site_name": "NewsNow",
       "ok": true,
       "item_count": 124,
-      "duration_ms": 1525,
+      "duration_ms": 1213,
       "error": null
     }
   ],
   "successful_sites": 12,
   "failed_sites": [],
   "zero_item_sites": [],
-  "fetched_raw_items": 4951,
-  "items_before_topic_filter": 3985,
-  "items_in_24h": 294,
+  "fetched_raw_items": 5034,
+  "items_before_topic_filter": 4084,
+  "items_in_24h": 334,
   "rss_opml": {
     "enabled": false,
     "path": null,
