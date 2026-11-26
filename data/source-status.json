@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-11-26T00:34:47.048451Z",
+  "generated_at": "2026-11-26T09:01:47.380801Z",
   "sites": [
     {
       "site_id": "official_ai",
       "site_name": "Official AI Updates",
       "ok": true,
       "item_count": 276,
-      "duration_ms": 2959,
+      "duration_ms": 2257,
       "error": null
     },
     {
@@ -14,15 +14,15 @@
       "site_name": "AI Breakfast",
       "ok": true,
       "item_count": 9,
-      "duration_ms": 160,
+      "duration_ms": 69,
       "error": null
     },
     {
       "site_id": "followbuilders",
       "site_name": "Follow Builders",
       "ok": true,
-      "item_count": 35,
-      "duration_ms": 199,
+      "item_count": 43,
+      "duration_ms": 22,
       "error": null
     },
     {
@@ -30,7 +30,7 @@
       "site_name": "TechURLs",
       "ok": true,
       "item_count": 405,
-      "duration_ms": 211,
+      "duration_ms": 400,
       "error": null
     },
     {
@@ -38,39 +38,39 @@
       "site_name": "Buzzing",
       "ok": true,
       "item_count": 744,
-      "duration_ms": 544,
+      "duration_ms": 248,
       "error": null
     },
     {
       "site_id": "iris",
       "site_name": "Info Flow",
-      "ok": true,
-      "item_count": 308,
-      "duration_ms": 33199,
-      "error": null
+      "ok": false,
+      "item_count": 0,
+      "duration_ms": 181406,
+      "error": "HTTPSConnectionPool(host='iris.findtruman.io', port=443): Max retries exceeded with url: /web/info_flow (Caused by ResponseError('too many 502 error responses'))"
     },
     {
       "site_id": "bestblogs",
       "site_name": "BestBlogs",
       "ok": true,
       "item_count": 1,
-      "duration_ms": 631,
+      "duration_ms": 778,
       "error": null
     },
     {
       "site_id": "tophub",
       "site_name": "TopHub",
       "ok": true,
-      "item_count": 3039,
-      "duration_ms": 1092,
+      "item_count": 3038,
+      "duration_ms": 1508,
       "error": null
     },
     {
       "site_id": "zeli",
       "site_name": "Zeli",
       "ok": true,
-      "item_count": 69,
-      "duration_ms": 791,
+      "item_count": 54,
+      "duration_ms": 522,
       "error": null
     },
     {
@@ -78,7 +78,7 @@
       "site_name": "AI HubToday",
       "ok": true,
       "item_count": 3,
-      "duration_ms": 141,
+      "duration_ms": 52,
       "error": null
     },
     {
@@ -86,7 +86,7 @@
       "site_name": "AIbase",
       "ok": true,
       "item_count": 20,
-      "duration_ms": 1476,
+      "duration_ms": 913,
       "error": null
     },
     {
@@ -94,16 +94,18 @@
       "site_name": "NewsNow",
       "ok": true,
       "item_count": 126,
-      "duration_ms": 1560,
+      "duration_ms": 898,
       "error": null
     }
   ],
-  "successful_sites": 12,
-  "failed_sites": [],
+  "successful_sites": 11,
+  "failed_sites": [
+    "iris"
+  ],
   "zero_item_sites": [],
-  "fetched_raw_items": 5035,
-  "items_before_topic_filter": 4045,
-  "items_in_24h": 341,
+  "fetched_raw_items": 4719,
+  "items_before_topic_filter": 3810,
+  "items_in_24h": 300,
   "rss_opml": {
     "enabled": false,
     "path": null,
